@@ -20,6 +20,7 @@ router.get('/', async (req, res, next) => {
   } 
 })
 
+// getContactById
 router.get('/:contactId', async (req, res, next) => {
   try {
     const {contactId} = req.params;  
