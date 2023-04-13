@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const authRouter = require('./routes/api/auth');
 const contactsRouter = require('./routes/api/contacts');
+const businessProcessesRouter = require('./routes/api/business-processes');
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 
 app.use('/api/users', authRouter);
 app.use('/api/contacts', contactsRouter);
+app.use('/api/business-processes', businessProcessesRouter);
 
 app.use((req, res) => {
   res.status(404).json({ message: 'Not found' });
