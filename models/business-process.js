@@ -7,16 +7,9 @@ const businessProcessSchema = new Schema({
       type: String,
       required: [true, 'Set name for contact'],
     },
-    email: {
+    path: {
       type: String,
     },
-    phone: {
-      type: String,
-    },
-    favorite: {
-      type: Boolean,
-      default: false,
-    }, 
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
@@ -29,9 +22,7 @@ const BusinessProcess = model('business-processes',businessProcessSchema);
 
 const addSchema = Joi.object({
     name: Joi.string().required(),
-    email: Joi.string().required(),
-    phone: Joi.string().required(),
-    favorite: Joi.boolean(),
+    path: Joi.string().required(),
 });
 
 
