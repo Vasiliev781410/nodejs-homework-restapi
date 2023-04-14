@@ -3,6 +3,13 @@ const {User} = require('../models/user');
 const {ctrlWrapper} = require('../utils');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const gravatar = require('gravatar');
+const fs = require('fs').promises;
+const path = require('path');
+const Jimp = require("jimp");
+
+const avatarDir = path.join(__dirname,'../','public','avatars');
+
 const {SECRET_KEY} = process.env;
 
 const register =   async (req, res, next) => {
@@ -12,7 +19,8 @@ const register =   async (req, res, next) => {
         throw HttpError(409,"Email in use");
     }
     const hashRassword = await bcrypt.hash(password,10);
-    const newUser = await User.create({...req.body, password: hashRassword});
+    const avatarURL = gravatar.url(email);
+    const newUser = await User.create({...req.body, password: hashRassword, avatarURL});
 
     res.status(201).json({email: newUser.email,  subscription: "starter"});
 }
@@ -49,9 +57,27 @@ const logout =   async (req, res, next) => {
     res.status(204).json({message: ""});
 }
 
+const updateAvatar = async (req, res, next) => {
+    const {path: tempUpload, filename} = req.file;    
+    const {_id} = req.user; 
+    const savename = `${_id}_${filename}`;   
+    const resultUpload = path.join(avatarDir,savename); 
+
+    await fs.rename(tempUpload,resultUpload);
+
+    const image = await Jimp.read(resultUpload);   
+    image.resize(250,250).write(resultUpload); 
+          
+    const avatarURL = path.join('avatars',savename);   
+    await User.findByIdAndUpdate(_id,{avatarURL});
+               
+    res.status(200).json({avatarURL});
+};
+
 module.exports = {
     register: ctrlWrapper(register),
     login: ctrlWrapper(login),
     getCurrent: ctrlWrapper(getCurrent),
     logout: ctrlWrapper(logout),
+    updateAvatar: ctrlWrapper(updateAvatar),
 };
