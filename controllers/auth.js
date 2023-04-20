@@ -27,6 +27,7 @@ const register =   async (req, res, next) => {
     const verifyEmail = {
         to: email,
         subject: "Verify email",
+        text: "Verify email",
         html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`
     }
 
@@ -59,6 +60,7 @@ const resendEmail =   async (req, res, next) => {
     const verifyEmail = {
         to: email,
         subject: "Verify email",
+        text: "Verify email",
         html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click verify email</a>`
     }
 

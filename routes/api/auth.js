@@ -12,7 +12,7 @@ const {schemas} = require('../../models/user');
 
 router.post('/register',validateBody(schemas.registerSchema), ctrl.register);
 
-router.get('/verify/:verificationToken',authenticate, ctrl.verifyEmail);
+router.get('/verify/:verificationToken',ctrl.verifyEmail);
 
 router.post('/verify',validateBody(schemas.verifySchema), ctrl.resendEmail);
 
