@@ -11,7 +11,7 @@ const { v4: uuidv4 } = require('uuid');
 
 const avatarDir = path.join(__dirname,'../','public','avatars');
 
-const {SECRET_KEY, BASE_URL} = process.env;
+const {SECRET_KEY, ADDRESS} = process.env;
 
 const register =   async (req, res, next) => {
     const {email, password} = req.body;
@@ -28,7 +28,7 @@ const register =   async (req, res, next) => {
         to: email,
         subject: "Verify email",
         text: "Verify email",
-        html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${verificationToken}">Click verify email</a>`
+        html: `<a target="_blank" href="${ADDRESS}/api/users/verify/${verificationToken}">Click verify email</a>`
     }
 
     await sendEmail(verifyEmail);
@@ -61,7 +61,7 @@ const resendEmail =   async (req, res, next) => {
         to: email,
         subject: "Verify email",
         text: "Verify email",
-        html: `<a target="_blank" href="${BASE_URL}/api/users/verify/${user.verificationToken}">Click verify email</a>`
+        html: `<a target="_blank" href="${ADDRESS}/api/users/verify/${user.verificationToken}">Click verify email</a>`
     }
 
     await sendEmail(verifyEmail); 
