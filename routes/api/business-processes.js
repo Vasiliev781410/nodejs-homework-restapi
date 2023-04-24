@@ -14,11 +14,11 @@ router.get('/', authenticate, ctrl.listBp);
 
 router.get('/:id', authenticate, isValidId, ctrl.getBpById);
 
-router.post('/', authenticate, validateBody(schemas.addBp), ctrl.addBp);
+router.post('/', authenticate, validateBody(schemas.addSchema), ctrl.addBp);
 
 router.delete('/:id', authenticate, isValidId, ctrl.removeBp);
 
-router.put('/:id', authenticate, isValidId, validateBody(schemas.addBp), ctrl.updateBp);
+router.put('/:id', authenticate, isValidId, validateBody(schemas.addSchema), ctrl.updateBp);
 
 
 module.exports = router
