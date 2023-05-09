@@ -13,10 +13,10 @@ const listContacts =   async (req, res, next) => {
 }
 
 const getContactById =   async (req, res, next) => {
-    const {contactId} = req.params;  
-    const result = await Contact.findById(contactId);
+    const {id} = req.params;  
+    const result = await Contact.findById(id);
     if (!result){ 
-        throw HttpError(404,`Book with id ${contactId} not found`);      
+        throw HttpError(404,`Book with id ${id} not found`);      
     }    
     res.json(result);  
 }
@@ -28,28 +28,28 @@ const addContact =   async (req, res, next) => {
 }
 
 const removeContact =  async (req, res, next) => {
-    const {contactId} = req.params;
-    const result = await Contact.findByIdAndDelete(contactId);
+    const {id} = req.params;
+    const result = await Contact.findByIdAndDelete(id);
     if (!result){ 
-      throw HttpError(404,`Book with id ${contactId} not found`);      
+      throw HttpError(404,`Book with id ${id} not found`);      
     }    
     res.status(204).send(); 
 }
 
 const updateContact =   async (req, res, next) => {   
-    const {contactId} = req.params;
-    const result = await Contact.findByIdAndUpdate(contactId,req.body, {new: true});
+    const {id} = req.params;
+    const result = await Contact.findByIdAndUpdate(id,req.body, {new: true});
     if (!result){ 
-      throw HttpError(404,`Book with id ${contactId} not found`);      
+      throw HttpError(404,`Book with id ${id} not found`);      
     }    
     res.json(result);
 }
 
 const updateFavorite =   async (req, res, next) => {   
-    const {contactId} = req.params;
-    const result = await Contact.findByIdAndUpdate(contactId,req.body, {new: true});
+    const {id} = req.params;
+    const result = await Contact.findByIdAndUpdate(id,req.body, {new: true});
     if (!result){ 
-      throw HttpError(404,`Book with id ${contactId} not found`);      
+      throw HttpError(404,`Book with id ${id} not found`);      
     }    
     res.json(result);
 }

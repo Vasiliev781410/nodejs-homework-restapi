@@ -5,10 +5,14 @@ const {handleMongooseError} = require('../helpers');
 const businessProcessSchema = new Schema({        
     name: {
       type: String,
-      required: [true, 'Set name for contact'],
     },
     path: {
       type: String,
+      required: true,
+    },
+    frontId: {
+      type: String,
+      required: true,
     },
     owner: {
       type: Schema.Types.ObjectId,
@@ -21,8 +25,9 @@ businessProcessSchema.post("save",handleMongooseError);
 const BusinessProcess = model('business-processes',businessProcessSchema);
 
 const addSchema = Joi.object({
-    name: Joi.string().required(),
+    name: Joi.string(),
     path: Joi.string().required(),
+    frontId: Joi.string().required(),
 });
 
 

@@ -4,21 +4,21 @@ const router = express.Router();
 
 const ctrl = require('../../controllers/business-processes');
 
-const {validateBody} = require('../../utils');
+const {validateBodyCatalog} = require('../../utils');
 
-const {isValidId, authenticate} = require('../../middlewares');
+const { authenticate} = require('../../middlewares');
 
 const {schemas} = require('../../models/business-process');
 
 router.get('/', authenticate, ctrl.listBp);
 
-router.get('/:id', authenticate, isValidId, ctrl.getBpById);
+router.get('/:name', authenticate, ctrl.getBpByName);
 
-router.post('/', authenticate, validateBody(schemas.addSchema), ctrl.addBp);
+router.post('/', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.addBp);
 
-router.delete('/:id', authenticate, isValidId, ctrl.removeBp);
+router.delete('/:name', authenticate,  ctrl.removeBp);
 
-router.put('/:id', authenticate, isValidId, validateBody(schemas.addSchema), ctrl.updateBp);
+router.put('/:name', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.updateBp);
 
 
 module.exports = router
