@@ -2,7 +2,7 @@ const {Schema, model} = require('mongoose');
 const Joi = require('joi');
 const {handleMongooseError} = require('../helpers');
 
-const businessProcessSchema = new Schema({        
+const subjectsSchema = new Schema({      
     name: {
       type: String,
     },
@@ -18,28 +18,48 @@ const businessProcessSchema = new Schema({
       type: String,
       required: true,
     },
+    elemSource: {
+     type: String,
+     default: '',
+    },
+    elemSourceId: {
+      type: String,
+      default: '',
+     },
+    masterId: {
+      type: String,
+      default: '',
+     },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
   }     
 },{versionKey: false});
 
-businessProcessSchema.post("save",handleMongooseError);
+subjectsSchema.post("save",handleMongooseError);
 
-const BusinessProcess = model('business-processes',businessProcessSchema);
+const getSubjectModel =   (subject) => { 
+  const Subjects = model(subject,subjectsSchema);
+
+  return Subjects;
+}
 
 const addSchema = Joi.object({
     name: Joi.string(),
     path: Joi.string().required(),
     source: Joi.string().required(),
     frontId: Joi.string().required(),
+    elemSource: Joi.string(),
+    elemSourceId: Joi.string(),
+    masterId: Joi.string(),
 });
+
 
 const schemas = {
     addSchema,
 }
 
 module.exports = {
-    BusinessProcess,
+    getSubjectModel,
     schemas
 };
