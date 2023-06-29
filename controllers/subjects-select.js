@@ -6,14 +6,14 @@ const getReqParams =   (req) => {
     const{subject} = req.params;
    
     const indexOfFirst = subject.indexOf("+");
-    let _id = null; 
+    let id = null; 
     let subjectName = subject;
     if (indexOfFirst !== -1){
-        subjectName = subject.substring(1, indexOfFirst-1);
-        _id = subject.substring(indexOfFirst+1);
+        subjectName = subject.substring(0, indexOfFirst);
+        id = subject.substring(indexOfFirst+1);
     }
     
-    return {subjectName, _id};
+    return {subjectName, id};
 }
 
 const listSubjects =   async (req, res, next) => {
@@ -25,6 +25,8 @@ const listSubjects =   async (req, res, next) => {
     const Subjects = getSubjectModel(subjectName);
 
     const result = await Subjects.find({owner},"-owner").populate("owner", "email subscription");
+    result.sort((a,b) => a.path - b.path);
+
     res.json(result); 
 }
 
@@ -39,21 +41,24 @@ const addSubject =   async (req, res, next) => {
 }
 
 const removeSubject =  async (req, res, next) => {    
-    const {subjectName, _id} = getReqParams(req);
+    const {subjectName, id} = getReqParams(req);
     const Subjects = getSubjectModel(subjectName);
-    const result = await Subjects.findByIdAndDelete(_id);
+    // const result = await Subjects.findByIdAndDelete(id);
+    console.log("removeSubject: ",Subjects);
+    const result = await Subjects.findOneAndDelete({frontId: id});
     if (!result){ 
-      throw HttpError(404,`Subject with id ${_id} not found`);      
+      throw HttpError(404,`Subject with id ${id} not found`);      
     }    
     res.status(204).send(); 
 }
 
 const updateSubject =   async (req, res, next) => {         
-    const {subjectName, _id} = getReqParams(req);
+    const {subjectName, id} = getReqParams(req);
     const Subjects = getSubjectModel(subjectName);
-    const result = await Subjects.findByIdAndUpdate(_id, req.body, {new: true});
+    // const result = await Subjects.findByIdAndUpdate(id, req.body, {new: true});
+    const result = await Subjects.findOneAndUpdate({frontId: id}, req.body, {new: true});
     if (!result){ 
-      throw HttpError(404,`Subject with id ${_id} not found`);      
+      throw HttpError(404,`Subject with id ${id} not found`);      
     } 
     res.json(result);
 }

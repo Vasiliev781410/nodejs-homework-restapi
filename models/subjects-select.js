@@ -25,11 +25,11 @@ const subjectsSchema = new Schema({
     elemSourceId: {
       type: String,
       default: '',
-     },
+    },
     masterId: {
       type: String,
       default: '',
-     },
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
