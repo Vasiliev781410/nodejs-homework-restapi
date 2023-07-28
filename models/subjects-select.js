@@ -30,6 +30,10 @@ const subjectsSchema = new Schema({
       type: String,
       default: '',
     },
+    parentId: {
+      type: String,
+      default: null,
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
@@ -52,6 +56,7 @@ const addSchema = Joi.object({
     elemSource: Joi.string(),
     elemSourceId: Joi.string(),
     masterId: Joi.string(),
+    parentId: Joi.string(),
 });
 
 

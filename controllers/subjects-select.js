@@ -25,7 +25,7 @@ const listSubjects =   async (req, res, next) => {
     const Subjects = getSubjectModel(subjectName);
 
     const result = await Subjects.find({owner},"-owner").populate("owner", "email subscription");
-    result.sort((a,b) => a.path - b.path);
+    result.sort((a, b) => a.path > b.path ? 1 : -1);
 
     res.json(result); 
 }
