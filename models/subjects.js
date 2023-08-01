@@ -6,7 +6,11 @@ const subjectsSchema = new Schema({
     name: {
       type: String,
     },
-    nameId: {
+    path: {
+      type: String,
+      required: true,
+    },
+    frontId: {
       type: String,
       required: true,
     },
@@ -18,13 +22,21 @@ const subjectsSchema = new Schema({
       type: Boolean,
       default: false,
     },
+    source: {
+      type: String,
+      required: true,
+    },
     master: {
       type: String,
       default: "",
-    },
+    },    
     elemSource: {
       type: String,
       default: "",
+    },
+    parentId: {
+      type: String,
+      default: null,
     },
     owner: {
       type: Schema.Types.ObjectId,
@@ -39,11 +51,14 @@ const Subjects = model('subjects',subjectsSchema);
 
 const addSchema = Joi.object({
     name: Joi.string(),
-    nameId: Joi.string().required(),
+    path: Joi.string().required(),
+    frontId: Joi.string().required(),
+    source: Joi.string().required(),
     custom: Joi.boolean(),
     financial: Joi.boolean(),
     master: Joi.string(),
     elemSource: Joi.string(),
+    parentId: Joi.string(),
 });
 
 

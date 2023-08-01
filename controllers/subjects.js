@@ -11,7 +11,7 @@ const listSubjects =   async (req, res, next) => {
 
 const getSubjectById =   async (req, res, next) => {
     const {id} = req.params;  
-    const result = await Subjects.findById(id);
+    const result = await Subjects.findOne({frontId: id});
     if (!result){ 
         throw HttpError(404,`Subject with id ${id} not found`);      
     }    
@@ -33,7 +33,7 @@ const addSubject =   async (req, res, next) => {
 const removeSubject =  async (req, res, next) => {
     const {id} = req.params;
     console.log("id ",id);  
-    const result = await Subjects.findByIdAndDelete(id);
+    const result = await Subjects.findByIdAndDelete({frontId: id});
     if (!result){ 
       throw HttpError(404,`Subject with id ${id} not found`);      
     }    
@@ -44,7 +44,7 @@ const updateSubject =   async (req, res, next) => {
     const {id} = req.params;
     console.log(req.body);
   
-    const result = await Subjects.findByIdAndUpdate(id, req.body, {new: true});
+    const result = await Subjects.findOneAndUpdate({frontId: id}, req.body, {new: true});
     if (!result){ 
       throw HttpError(404,`Subject with id ${id} not found`);      
     }
