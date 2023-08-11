@@ -34,9 +34,14 @@ const addSubject =   async (req, res, next) => {
     const {_id: owner} = req.user; 
     console.log("req.params: ",req.params);
     const {subjectName} = getReqParams(req);
-    const Subjects = getSubjectModel(subjectName);   
-    const result = await Subjects.create({...req.body, owner});
-        
+    const Subjects = getSubjectModel(subjectName);
+    const {name} = req.body;
+    const elem = await Subjects.findOne({name});
+    let result = null;
+    if (!elem){   
+        result = await Subjects.create({...req.body, owner});
+    }   
+           
     res.status(201).json(result);
 }
 
