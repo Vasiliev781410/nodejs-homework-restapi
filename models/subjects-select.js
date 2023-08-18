@@ -6,6 +6,10 @@ const subjectsSchema = new Schema({
     name: {
       type: String,
     },
+    nameChanged: {
+      type: Boolean,
+      default: false,
+    },
     path: {
       type: String,
       required: true,
@@ -50,6 +54,7 @@ const getSubjectModel =   (subject) => {
 
 const addSchema = Joi.object({
     name: Joi.string(),
+    nameChanged: Joi.boolean(),
     path: Joi.string().required(),
     source: Joi.string().required(),
     frontId: Joi.string().required(),

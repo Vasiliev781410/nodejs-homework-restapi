@@ -11,8 +11,6 @@ const { authenticate} = require('../../middlewares');
 
 const {schemas} = require('../../models/subjects-select');
 
-console.log("calling subjects-select-router");
-
 router.get('/:subject', authenticate, ctrl.listSubjects);
 
 router.post('/:subject', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.addSubject);
