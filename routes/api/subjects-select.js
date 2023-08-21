@@ -17,7 +17,9 @@ router.post('/:subject', authenticate, validateBodyCatalog(schemas.addSchema), c
 
 router.delete('/:subject', authenticate,  ctrl.removeSubject);
 
-router.put('/:subject', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.updateSubject);
+router.patch('/update/:subject', authenticate, validateBodyCatalog(schemas.updateName), ctrl.updateSubject);
+
+router.patch('/params/:subject', authenticate, validateBodyCatalog(schemas.updateParams), ctrl.updateSubjectParams);
 
 
 module.exports = router

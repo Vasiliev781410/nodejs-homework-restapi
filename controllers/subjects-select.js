@@ -69,9 +69,21 @@ const updateSubject =   async (req, res, next) => {
     res.json(result);
 }
 
+const updateSubjectParams =   async (req, res, next) => {         
+    const {subjectName, id} = getReqParams(req);
+    const Subjects = getSubjectModel(subjectName);
+    const result = await Subjects.findByIdAndUpdate(id, req.body, {new: true});
+    // const result = await Subjects.findOneAndUpdate({frontId: id}, req.body, {new: true});
+    if (!result){ 
+      throw HttpError(404,`Subject with id ${id} not found`);      
+    } 
+    res.json(result);
+}
+
 module.exports = {
     listSubjects: ctrlWrapper(listSubjects),
     addSubject: ctrlWrapper(addSubject),
     removeSubject: ctrlWrapper(removeSubject),
     updateSubject: ctrlWrapper(updateSubject),
+    updateSubjectParams: ctrlWrapper(updateSubjectParams),
 };
