@@ -72,6 +72,7 @@ const updateSubject =   async (req, res, next) => {
 const updateSubjectParams =   async (req, res, next) => {         
     const {subjectName, id} = getReqParams(req);
     const Subjects = getSubjectModel(subjectName);
+    console.log("req.body ", req.body);
     const result = await Subjects.findByIdAndUpdate(id, req.body, {new: true});
     // const result = await Subjects.findOneAndUpdate({frontId: id}, req.body, {new: true});
     if (!result){ 
