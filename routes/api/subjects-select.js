@@ -21,5 +21,10 @@ router.patch('/update/:subject', authenticate, validateBodyCatalog(schemas.updat
 
 router.patch('/params/:subject', authenticate, validateBodyCatalog(schemas.updateParams), ctrl.updateSubjectParams);
 
+router.patch('/sequence/:subject', authenticate, validateBodyCatalog(schemas.updateSequence), ctrl.updateSubjectParams);
+
+router.patch('/headerparams/:subject', authenticate, validateBodyCatalog(schemas.updateCardHeaderParams), ctrl.updateSubjectParams);
+
+router.patch('/tableparams/:subject', authenticate, validateBodyCatalog(schemas.updateCardTableParams), ctrl.updateSubjectParams);
 
 module.exports = router

@@ -42,6 +42,18 @@ const subjectsSchema = new Schema({
       type: Array,
       default: [],
     },
+    sequence:{
+      type: Array,
+      default: [],
+    },
+    cardHeaderParams:{
+      type: Array,
+      default: [],
+    },
+    cardTableParams:{
+      type: Array,
+      default: [],
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
@@ -65,7 +77,7 @@ const addSchema = Joi.object({
     elemSource: Joi.string(),
     elemSourceId: Joi.string(),
     masterId: Joi.string(),
-    parentId: Joi.string(),
+    parentId: Joi.string(),  
 });
 
 const updateName = Joi.object({
@@ -75,17 +87,33 @@ const updateName = Joi.object({
   frontId: Joi.string().required(),
 });
 
-
 const updateParams = Joi.object({
   params: Joi.array().required(),
   source: Joi.string().required(),
 });
 
+const updateCardHeaderParams = Joi.object({
+  cardHeaderParams: Joi.array().required(),
+  source: Joi.string().required(),
+});
+
+const updateCardTableParams = Joi.object({
+  cardTableParams: Joi.array().required(),
+  source: Joi.string().required(),
+});
+
+const updateSequence = Joi.object({
+  sequence: Joi.array().required(),
+  source: Joi.string().required(),
+});
 
 const schemas = {
     addSchema,
     updateName,
     updateParams,
+    updateSequence,
+    updateCardHeaderParams,
+    updateCardTableParams,
 }
 
 module.exports = {
