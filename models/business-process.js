@@ -18,6 +18,18 @@ const businessProcessSchema = new Schema({
       type: String,
       required: true,
     },
+    sequence:{
+      type: Array,
+      default: [],
+    },
+    cardHeaderParams:{
+      type: Array,
+      default: [],
+    },
+    cardTableParams:{
+      type: Array,
+      default: [],
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
@@ -26,13 +38,14 @@ const businessProcessSchema = new Schema({
 
 businessProcessSchema.post("save",handleMongooseError);
 
-const BusinessProcess = model('business-processes',businessProcessSchema);
+const BusinessProcess = model('business-process',businessProcessSchema);
 
 const addSchema = Joi.object({
-    name: Joi.string(),
-    path: Joi.string().required(),
-    source: Joi.string().required(),
-    frontId: Joi.string().required(),
+  name: Joi.string(),
+  path: Joi.string().required(),
+  source: Joi.string().required(),
+  frontId: Joi.string().required(),
+  parentId: Joi.string(),  
 });
 
 const schemas = {
