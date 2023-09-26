@@ -10,6 +10,10 @@ const businessProcessSchema = new Schema({
       type: String,
       required: true,
     },
+    parentId: {
+      type: String, 
+      default: "", 
+    },
     frontId: {
       type: String,
       required: true,
