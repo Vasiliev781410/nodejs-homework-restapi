@@ -10,11 +10,11 @@ const listBp =   async (req, res, next) => {
 }
 
 const getBpByFrontId =   async (req, res, next) => {
-    const {_id: owner} = req.user; 
-    const {frontId} = req.params;  
-    const result = await BusinessProcess.findOne({frontId, owner});
+    // const {_id: owner} = req.user; 
+    const {id} = req.params;  
+    const result = await BusinessProcess.findById(id);
     if (!result){ 
-        throw HttpError(404,`Business-process with frontId ${frontId} not found`);      
+        throw HttpError(404,`Business-process with id ${id} not found`);      
     }    
     res.json(result);  
 }
@@ -27,27 +27,24 @@ const addBp =   async (req, res, next) => {
 }
 
 const removeBp =  async (req, res, next) => {
-    const {frontId} = req.params;
-    console.log("frontId ",frontId);  
-    const result = await BusinessProcess.findOneAndDelete({frontId});
+    const {id} = req.params;
+    console.log("id ",id);  
+    const result = await BusinessProcess.findByIdAndDelete(id);
     if (!result){ 
-      throw HttpError(404,`Business-process with frontId ${frontId} not found`);      
+      throw HttpError(404,`Business-process with id ${id} not found`);      
     }    
     res.status(204).send(); 
 }
 
 const updateBp =   async (req, res, next) => {   
-    const {frontId} = req.params;
+    const {id} = req.params;
     console.log(req.body);
   
-    const result = await BusinessProcess.findOneAndUpdate({frontId},req.body, {new: true});
+    const result = await BusinessProcess.findByIdAndUpdate(id,req.body, {new: true});
     if (!result){ 
-      throw HttpError(404,`Business-process with frontId ${frontId} not found`);      
-    }
+      throw HttpError(404,`Business-process with id ${id} not found`);      
+    };
 
-    // const {_id: owner} = req.user;
-    // const filter = {owner}; 
-    // const catalogRes = await BusinessProcessCatalog.findOneAndUpdate(filter,catalog);   
     res.json(result);
 }
 

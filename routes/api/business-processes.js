@@ -12,13 +12,13 @@ const {schemas} = require('../../models/business-process');
 
 router.get('/', authenticate, ctrl.listBp);
 
-router.get('/:frontId', authenticate, ctrl.getBpByFrontId);
+router.get('/:id', authenticate, ctrl.getBpByFrontId);
 
 router.post('/', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.addBp);
 
-router.delete('/:frontId', authenticate,  ctrl.removeBp);
+router.delete('/:id', authenticate,  ctrl.removeBp);
 
-router.put('/:frontId', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.updateBp);
+router.patch('/:id', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.updateBp);
 
 
 module.exports = router
