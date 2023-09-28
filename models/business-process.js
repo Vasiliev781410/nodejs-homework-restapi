@@ -18,6 +18,14 @@ const businessProcessSchema = new Schema({
       type: String,
       required: true,
     },
+    processId: {
+      type: String,
+      required: true,
+    },
+    status: {
+      type: String,
+      default: "",
+    },
     source: {
       type: String,
       required: true,
@@ -49,11 +57,18 @@ const addSchema = Joi.object({
   path: Joi.string().required(),
   source: Joi.string().required(),
   frontId: Joi.string().required(),
+  processId: Joi.string().required(),
   parentId: Joi.string(),  
+  status: Joi.string(),  
+});
+
+const updateSchema = Joi.object({
+  id: Joi.string().required(),  
 });
 
 const schemas = {
     addSchema,
+    updateSchema,
 }
 
 module.exports = {

@@ -18,7 +18,7 @@ router.post('/', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.addB
 
 router.delete('/:id', authenticate,  ctrl.removeBp);
 
-router.patch('/:id', authenticate, validateBodyCatalog(schemas.addSchema), ctrl.updateBp);
+router.patch('/:id', authenticate, validateBodyCatalog(schemas.updateSchema), ctrl.updateBp);
 
 
 module.exports = router

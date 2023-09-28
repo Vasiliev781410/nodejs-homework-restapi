@@ -38,6 +38,7 @@ const removeBp =  async (req, res, next) => {
 
 const updateBp =   async (req, res, next) => {   
     const {id} = req.params;
+    // const { processId } = req.body;
     console.log(req.body);
   
     const result = await BusinessProcess.findByIdAndUpdate(id,req.body, {new: true});
