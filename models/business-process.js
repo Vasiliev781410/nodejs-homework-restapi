@@ -42,6 +42,10 @@ const businessProcessSchema = new Schema({
       type: Array,
       default: [],
     },
+    formula:{
+      type: Array,
+      default: [],
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',

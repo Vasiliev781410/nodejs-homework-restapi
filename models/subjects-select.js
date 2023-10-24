@@ -54,6 +54,10 @@ const subjectsSchema = new Schema({
       type: Array,
       default: [],
     },
+    formula:{
+      type: Array,
+      default: [],
+    },
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
@@ -80,12 +84,12 @@ const addSchema = Joi.object({
     parentId: Joi.string(),  
 });
 
-const updateName = Joi.object({
-  name: Joi.string(),
-  nameChanged: Joi.boolean(),
-  path: Joi.string().required(),
-  frontId: Joi.string().required(),
-});
+// const updateOther = Joi.object({
+//   name: Joi.string(),
+//   nameChanged: Joi.boolean(),
+//   path: Joi.string().required(),
+//   frontId: Joi.string().required(),
+// });
 
 const updateParams = Joi.object({
   params: Joi.array().required(),
@@ -109,7 +113,6 @@ const updateSequence = Joi.object({
 
 const schemas = {
     addSchema,
-    updateName,
     updateParams,
     updateSequence,
     updateCardHeaderParams,

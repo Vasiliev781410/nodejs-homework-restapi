@@ -17,7 +17,7 @@ router.post('/:subject', authenticate, validateBodyCatalog(schemas.addSchema), c
 
 router.delete('/:subject', authenticate,  ctrl.removeSubject);
 
-router.patch('/update/:subject', authenticate, validateBodyCatalog(schemas.updateName), ctrl.updateSubject);
+router.patch('/update/:subject', authenticate, ctrl.updateSubject);
 
 router.patch('/params/:subject', authenticate, validateBodyCatalog(schemas.updateParams), ctrl.updateSubjectParams);
 
