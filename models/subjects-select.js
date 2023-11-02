@@ -84,12 +84,12 @@ const addSchema = Joi.object({
     parentId: Joi.string(),  
 });
 
-// const updateOther = Joi.object({
-//   name: Joi.string(),
-//   nameChanged: Joi.boolean(),
-//   path: Joi.string().required(),
-//   frontId: Joi.string().required(),
-// });
+const updateName = Joi.object({
+  name: Joi.string(),
+  nameChanged: Joi.boolean(),
+  path: Joi.string().required(),
+  frontId: Joi.string().required(),
+});
 
 const updateParams = Joi.object({
   params: Joi.array().required(),
@@ -111,12 +111,19 @@ const updateSequence = Joi.object({
   source: Joi.string().required(),
 });
 
+const updateFormula = Joi.object({
+  formula: Joi.array().required(),
+  source: Joi.string().required(),
+});
+
 const schemas = {
     addSchema,
+    updateName,
     updateParams,
     updateSequence,
     updateCardHeaderParams,
     updateCardTableParams,
+    updateFormula,
 }
 
 module.exports = {

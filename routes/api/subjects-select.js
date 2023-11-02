@@ -17,7 +17,7 @@ router.post('/:subject', authenticate, validateBodyCatalog(schemas.addSchema), c
 
 router.delete('/:subject', authenticate,  ctrl.removeSubject);
 
-router.patch('/update/:subject', authenticate, ctrl.updateSubject);
+router.patch('/update/:subject', authenticate, validateBodyCatalog(schemas.updateName), ctrl.updateSubject);
 
 router.patch('/params/:subject', authenticate, validateBodyCatalog(schemas.updateParams), ctrl.updateSubjectParams);
 
@@ -26,5 +26,7 @@ router.patch('/sequence/:subject', authenticate, validateBodyCatalog(schemas.upd
 router.patch('/headerparams/:subject', authenticate, validateBodyCatalog(schemas.updateCardHeaderParams), ctrl.updateSubjectParams);
 
 router.patch('/tableparams/:subject', authenticate, validateBodyCatalog(schemas.updateCardTableParams), ctrl.updateSubjectParams);
+
+router.patch('/formula/:subject', authenticate, validateBodyCatalog(schemas.updateFormula), ctrl.updateSubjectParams);
 
 module.exports = router
