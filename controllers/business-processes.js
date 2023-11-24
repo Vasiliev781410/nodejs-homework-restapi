@@ -49,10 +49,24 @@ const updateBp =   async (req, res, next) => {
     res.json(result);
 }
 
+const calculationBp =   async (req, res, next) => {   
+    const {id} = req.params;
+    // const { processId } = req.body;
+    console.log(req.body);
+  
+    const result = await BusinessProcess.findByIdAndUpdate(id,req.body, {new: true});
+    if (!result){ 
+      throw HttpError(404,`Business-process with id ${id} not found`);      
+    };
+
+    res.json(result);
+}
+
 module.exports = {
     listBp: ctrlWrapper(listBp),
     getBpByFrontId: ctrlWrapper(getBpByFrontId),
     addBp: ctrlWrapper(addBp),
     removeBp: ctrlWrapper(removeBp),
     updateBp: ctrlWrapper(updateBp),
+    calculationBp: ctrlWrapper(calculationBp),
 };

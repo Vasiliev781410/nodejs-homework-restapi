@@ -20,5 +20,7 @@ router.delete('/:id', authenticate,  ctrl.removeBp);
 
 router.patch('/:id', authenticate, validateBodyCatalog(schemas.updateSchema), ctrl.updateBp);
 
+router.patch('/calculation/:id', authenticate, validateBodyCatalog(schemas.updateSchema), ctrl.calculationBp);
+
 
 module.exports = router
