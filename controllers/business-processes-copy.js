@@ -86,14 +86,14 @@ const findParamAsync = async (calculatedBp, param, mainParam) => {
       
     if (parameter){
         value = await findParamSubject(parameter,param);      
-        // console.log('value 1: ',value);               
+        console.log('value 1: ',value);               
     };
   
 
     return value;  
 };
 
-const count = async (calculatedBp,item) => {
+const count = (calculatedBp,item) => {
     let result = 0;
     // console.log('item.formula: ',item.formula);
     let sign = "";
@@ -101,8 +101,8 @@ const count = async (calculatedBp,item) => {
     let step = 1;   
     let mainParam = {value: 0, type: ""};
     let needCount = true; 
-    let previousParam = {};  
-    for (const param of item.formula) {      
+    let previousParam = {};
+    item.formula.forEach((param,index) => {      
        needCount = true; 
         let next = {type: ""};
         if (param.type === "number"){
@@ -114,14 +114,18 @@ const count = async (calculatedBp,item) => {
         }else if (param.type === "parameter"){ 
              // 1. find parameters       
             if (mainParam.type){
-                paramValue = await findParamAsync(calculatedBp, param, mainParam);               
+                findParamAsync(calculatedBp, param, mainParam).then(res => {
+                   paramValue = res;           
+                   return res;
+                });
+                console.log("!!!!: ",paramValue);               
             }else{
                 paramValue = findParamCommon(calculatedBp, param);                
             };
            
 
-            if (step < item.formula.length){
-                next = item.formula[step];
+            if (index + 1 < item.formula.length){
+                next = item.formula[index+1];
                 if (next.type === "dot"){
                     needCount = false; 
                     mainParam = {value: paramValue, type: param.type, paramId:  param. paramId};
@@ -134,7 +138,7 @@ const count = async (calculatedBp,item) => {
             needCount = false;
        };  
        
-       // console.log("paramValue: ",paramValue); 
+       console.log("paramValue: ",paramValue); 
 
         // 2. count current result  
         if (needCount){      
@@ -158,7 +162,7 @@ const count = async (calculatedBp,item) => {
             result = paramValue; 
         };
         if (previousParam.type === "dot"){
-            // console.log('value 2: ',paramValue); 
+            console.log('value 2: ',paramValue); 
             result = paramValue; 
         };
         // utils for count
@@ -167,15 +171,15 @@ const count = async (calculatedBp,item) => {
         };       
         previousParam = param;
         step = step + 1;        
-    };                     
-  
+     }                      
+    );
 
     return result;  
 }; 
 
 const updateParamValue = (calculatedBp,countResult,currentParam) => {
     // console.log("updateParamValue calculatedBp ",calculatedBp); 
-    const previousValue = calculatedBp.cardHeaderParams.find(item => item._id === currentParam.variableId && item?.temp !== true);   
+    const previousValue = calculatedBp.cardHeaderParams.find(item => item._id === currentParam.variableId);   
       
     if (previousValue){ 
         const newValue = {name: countResult.toString(), _id: previousValue.value._id, type: previousValue.value.type};
@@ -187,14 +191,16 @@ const updateParamValue = (calculatedBp,countResult,currentParam) => {
     return calculatedBp;
 };
 
-const calculation =  async (calculatedBp) => {
+const calculation =  (calculatedBp) => { 
     const formulaSequence = calculatedBp.formula;
-    let countResult = 0;  
-    for (const item of formulaSequence){          
-        countResult = await count(calculatedBp,item);  
+    let countResult = 0;     
+    formulaSequence.forEach(item => {          
+        countResult = count(calculatedBp,item);  
         // countResult = 14;               
         calculatedBp = updateParamValue(calculatedBp,countResult,item);
-    };           
+        }           
+    );
+
     return calculatedBp;  
 };  
 
@@ -207,9 +213,8 @@ const calculationBp =   async (req, res, next) => {
     if (!result){ 
       throw HttpError(404,`Business-process with id ${id} not found`);      
     };
-          
 
-    const calculatedBp = await calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula]});
+    const calculatedBp = calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula]});
     const updatedElem = { id, cardHeaderParams: [...calculatedBp.cardHeaderParams] };
   
     result = await BusinessProcess.findByIdAndUpdate(id,updatedElem, {new: true});       
