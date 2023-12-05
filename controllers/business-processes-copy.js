@@ -86,24 +86,45 @@ const findParamAsync = async (calculatedBp, param, mainParam) => {
       
     if (parameter){
         value = await findParamSubject(parameter,param);      
-        console.log('value 1: ',value);               
+        // console.log('value 1: ',value);               
     };
   
 
     return value;  
 };
 
-const count = (calculatedBp,item) => {
+const transformFormula = (formula) => {
+    const newFormula = [...formula];
+
+    return newFormula;
+};
+
+const count = async (calculatedBp,item) => {
     let result = 0;
-    // console.log('item.formula: ',item.formula);
+    let mainResult = 0;   
     let sign = "";
     let paramValue = 0;
     let step = 1;   
     let mainParam = {value: 0, type: ""};
     let needCount = true; 
-    let previousParam = {};
-    item.formula.forEach((param,index) => {      
-       needCount = true; 
+    let previousParam = {};    
+    let currentTempVariableId = ""; 
+    const tempStore = [];  // example [{variableId: "",value: 0}]
+    const formula = transformFormula( item.formula);
+    for (const param of formula) { 
+
+        if (!param?.tempVariableId){
+            result = mainResult;
+        };
+        if (currentTempVariableId !== param?.tempVariableId){            
+            if (currentTempVariableId){ // put in storage value of currentTempVariable
+                tempStore.push({variableId: currentTempVariableId, value: result});
+                result = 0;
+            };           
+            currentTempVariableId =param?.tempVariableId; // update currentTempVariableId
+        };
+        
+        needCount = true; 
         let next = {type: ""};
         if (param.type === "number"){
             try{
@@ -111,46 +132,38 @@ const count = (calculatedBp,item) => {
             }catch{
                 throw HttpError(500,`Unable to count in process ${calculatedBp._id}`);   
             };                 
-        }else if (param.type === "parameter"){ 
-             // 1. find parameters       
-            if (mainParam.type){
-                findParamAsync(calculatedBp, param, mainParam).then(res => {
-                   paramValue = res;           
-                   return res;
-                });
-                console.log("!!!!: ",paramValue);               
+        }else if (param.type === "parameter"){                    
+            if (mainParam.type){ // 1. find parameters 
+                paramValue = await findParamAsync(calculatedBp, param, mainParam);               
             }else{
                 paramValue = findParamCommon(calculatedBp, param);                
             };
-           
-
-            if (index + 1 < item.formula.length){
-                next = item.formula[index+1];
+             if (step < item.formula.length){
+                next = item.formula[step];
                 if (next.type === "dot"){
                     needCount = false; 
                     mainParam = {value: paramValue, type: param.type, paramId:  param. paramId};
                 }else{                
                     mainParam = {value: 0, type: ""}; 
                 };
-            };            
-
+            };
+        }else if (param.type === "temp"){ 
+            // 1. find parameters          
+               const tempStoreElem  = tempStore.find(elem => elem.variableId === param.id); 
+               if (tempStoreElem){
+                paramValue = tempStoreElem.value;
+               }; 
         }else  { 
             needCount = false;
-       };  
-       
-       console.log("paramValue: ",paramValue); 
+       };      
 
-        // 2. count current result  
-        if (needCount){      
+        if (needCount){   // 2. count current result     
             if (sign === "+"){
                 result = result + paramValue;
             }else if (sign === "-"){
                 result = result - paramValue;
-            }else if (sign === "*"){
-                // console.log("result: ",result);
-            //  console.log("paramValue: ",paramValue);
-                result =  result * paramValue;
-                
+            }else if (sign === "*"){        
+                result =  result * paramValue;                
             }else if (sign === "/"){
                 result = result / paramValue;
             };
@@ -161,25 +174,26 @@ const count = (calculatedBp,item) => {
         if (step === item.formula.length && sign === ""){
             result = paramValue; 
         };
-        if (previousParam.type === "dot"){
-            console.log('value 2: ',paramValue); 
+        if (previousParam.type === "dot"){           
             result = paramValue; 
         };
+        if (!param?.tempVariableId){
+            mainResult = result;
+        };        
         // utils for count
         if (param.type === "sign"){
             sign = param.paramName;    
         };       
         previousParam = param;
         step = step + 1;        
-     }                      
-    );
-
-    return result;  
+    };                     
+  
+    return mainResult;  
 }; 
 
 const updateParamValue = (calculatedBp,countResult,currentParam) => {
     // console.log("updateParamValue calculatedBp ",calculatedBp); 
-    const previousValue = calculatedBp.cardHeaderParams.find(item => item._id === currentParam.variableId);   
+    const previousValue = calculatedBp.cardHeaderParams.find(item => item._id === currentParam.variableId && item?.temp !== true);   
       
     if (previousValue){ 
         const newValue = {name: countResult.toString(), _id: previousValue.value._id, type: previousValue.value.type};
@@ -191,16 +205,14 @@ const updateParamValue = (calculatedBp,countResult,currentParam) => {
     return calculatedBp;
 };
 
-const calculation =  (calculatedBp) => { 
+const calculation =  async (calculatedBp) => {
     const formulaSequence = calculatedBp.formula;
-    let countResult = 0;     
-    formulaSequence.forEach(item => {          
-        countResult = count(calculatedBp,item);  
+    let countResult = 0;  
+    for (const item of formulaSequence){          
+        countResult = await count(calculatedBp,item);  
         // countResult = 14;               
         calculatedBp = updateParamValue(calculatedBp,countResult,item);
-        }           
-    );
-
+    };           
     return calculatedBp;  
 };  
 
@@ -213,8 +225,9 @@ const calculationBp =   async (req, res, next) => {
     if (!result){ 
       throw HttpError(404,`Business-process with id ${id} not found`);      
     };
+          
 
-    const calculatedBp = calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula]});
+    const calculatedBp = await calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula]});
     const updatedElem = { id, cardHeaderParams: [...calculatedBp.cardHeaderParams] };
   
     result = await BusinessProcess.findByIdAndUpdate(id,updatedElem, {new: true});       
