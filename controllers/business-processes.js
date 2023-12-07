@@ -92,82 +92,118 @@ const findParamAsync = async (calculatedBp, param, mainParam) => {
 
     return value;  
 };
-
-const createElementaryFormulas = (currentFormula,itr) => {   
-    let step = 1;
+const  multiplyAndDivide = (newCurrentFormula,tempFormula,itr,mainVariableName) =>{
     let variableId = 1;
-    const newFormula = [];
-    // const finishTypes = ["parameter","number"];
-    const signs = ["+","-","*","/"]; 
-    const openingBracket = currentFormula.lastIndexOf("(");
-    const closingBracket = currentFormula.lastIndexOf(")");    
-    const difference = closingBracket - openingBracket;
-    const leftSide = currentFormula.slice(0,openingBracket);
-    const rightSide = currentFormula.slice(closingBracket);
-    const newCurrentFormula = [...currentFormula]; 
-    if (openingBracket !== -1){
-        newCurrentFormula.splice(openingBracket,difference);
-    }   
-    let sign = "";
-    let finish = true;
-   // currentFormula.reverse().forEach(currentValue => {
-    newCurrentFormula.forEach(currentValue => {
-        // console.log("currentValue: ", currentValue);
-        const variableName = "v".concat(itr,".",variableId); 
-        // add new element of simple formula
-        newFormula.push({
-            id: step, 
-            paramId: currentValue.paramId, 
-            paramName: currentValue.paramName,
-            type: currentValue.type,
-            tempVariableId: variableName});
-        // delete last element currentFormula
-        newCurrentFormula.splice(step-1,1); 
-        if (sign){
-            finish = false;
-        };      
-            
-        if (finish){          
-            // add simple temp variable 
-            newCurrentFormula.splice(step-1,0,{
+    let step = 1;
+    const variableSymbol = "m"; 
+    const variableName = variableSymbol.concat(itr,".",variableId);     
+    const arraySigns = newCurrentFormula.filter(item => item.paramName === "*" || item.paramName === "/");
+    // console.log("multiplyAndDivide arraySigns: ",arraySigns);
+    arraySigns.forEach(item => {
+        const values = newCurrentFormula.map(param => param.paramName); 
+        const index = values.indexOf(item.paramName);
+        console.log("multiplyAndDivide index: ",index);
+        if (index !== -1){
+            const params = newCurrentFormula.slice(index-1,index+2);
+            // console.log("multiplyAndDivide params: ",params);
+            params.forEach(currentValue => {
+                // add new element of simple formula
+                tempFormula.push({
+                    id: step, 
+                    paramId: currentValue.paramId, 
+                    paramName: currentValue.paramName,
+                    type: currentValue.type,
+                    tempVariableId: variableName
+                });
+                step += 1;
+            });
+            // remove three params and insert one temp variable
+            newCurrentFormula.splice(index-1,3,{
                 id: variableName, 
                 paramId:"", 
                 paramName: variableName,
                 type: "temp",
-                tempVariableId: variableName, 
+                tempVariableId: mainVariableName, 
             });
-            variableId = variableId + 1;
-         };           
-        
-        if (signs.includes(currentValue.paramName)){  
-            sign = currentValue.paramName;   
-        };   
-    
-        step = step + 1;
-
+            variableId += 1;
+        };        
     });
+    
+    // console.log("multiplyAndDivide newCurrentFormula: ",newCurrentFormula);
 
-    // newFormula.reverse();
-    // console.log("newFormula: ",newFormula);
-    // console.log("newCurrentFormula: ",newCurrentFormula);
-    // newFormula = [...newFormula, ...newCurrentFormula];
-    // console.log("newFormula: ",newFormula);
+    return {newCurrentFormula, tempFormula}; 
+};
 
-    return leftSide.concat(newFormula,rightSide);
+const createElementaryFormulas = (currentFormula,tempFormula,itr) => {   
+    let step = 1; 
+    const arrayBrackets = currentFormula.filter(item => item.paramName === "(" || item.paramName === ")"); 
+    const arraySigns = currentFormula.filter(item => item.paramName === "+" || item.paramName === "-");
+    const openingBracket = arrayBrackets.lastIndexOf("(");
+    const closingBracket = arrayBrackets.indexOf(")");    
+    const difference = closingBracket - openingBracket;
+    const leftSide = currentFormula.slice(0,openingBracket);
+    const rightSide = currentFormula.slice(closingBracket);
+    let newData = {};
+    let newCurrentFormula = [...currentFormula]; 
+    if (openingBracket !== -1){
+        newCurrentFormula.splice(openingBracket,difference);
+    };  
+    const variableId = 1; 
+    const variableSymbol = "v";  
+    const variableName = variableSymbol.concat(itr,".",variableId);   
+    // 1. Multiply and divide
+    newData = multiplyAndDivide(newCurrentFormula,tempFormula,itr,variableName);    
+    newCurrentFormula = newData.newCurrentFormula;   
+    tempFormula = newData.tempFormula;
+    // 2. Add and subtract
+    newCurrentFormula.forEach(currentValue => {  
+        // add new element of temp formula
+        let id = "";
+        currentValue.type === "temp" ? id = currentValue.id : id =  step;
+        tempFormula.push({
+            id: id, 
+            paramId: currentValue.paramId, 
+            paramName: currentValue.paramName,
+            type: currentValue.type,
+            tempVariableId: variableName});   
+        step = step + 1;
+    });
+  
+    const newVariable = {
+        id: variableName, 
+        paramId:"", 
+        paramName: variableName,
+        type: "temp",
+        tempVariableId: "", 
+    };  
+    
+    if (openingBracket !== -1){
+        newCurrentFormula = leftSide.concat(newVariable,rightSide);
+    }else{
+        newCurrentFormula = [];  
+        if (arraySigns.length){
+            newCurrentFormula = [newVariable]; 
+        }; 
+    };
+
+    return {newCurrentFormula,tempFormula};
 };
 
 const transformFormula = (formula) => { 
     const brackets = formula.filter(item => item.paramName === "(");
     let bracketsLength = brackets.length;
-    if (bracketsLength === 0){
+    if (!bracketsLength){
         bracketsLength = 1;
+    };  
+    const tempFormula = [];    
+    let newData = {newCurrentFormula: [...formula],tempFormula};   
+    for (let i = 1; i <= bracketsLength; i += 1){         
+        newData = createElementaryFormulas(newData.newCurrentFormula,tempFormula,i);
     };
-    let newFormula = [...formula];    
-    for (let i = 1; i <= bracketsLength; i += 1){ 
-        newFormula = createElementaryFormulas(newFormula,i);
-    };
-    
-    return newFormula;
+    const newCurrentFormula = [...newData.tempFormula,...newData.newCurrentFormula];
+    console.log("newCurrentFormula: ",newCurrentFormula);
+
+    return newCurrentFormula;
 };
 
 const count = async (calculatedBp,item) => {
@@ -184,12 +220,18 @@ const count = async (calculatedBp,item) => {
     const formula = transformFormula( item.formula);
     for (const param of formula) { 
         // console.log(param);
-        if (currentTempVariableId !== param?.tempVariableId){       
+        
+        if (currentTempVariableId !== param?.tempVariableId){            
+            if (param?.id === currentTempVariableId){  
+                // console.log("result!!!!! ",{result,tempVariableId: param?.tempVariableId});             
+                tempStore.push({variableId: param?.tempVariableId, value: result});                        
+            };
             if (currentTempVariableId){               
                 result = 0;        
             };
             currentTempVariableId =param?.tempVariableId; // update currentTempVariableId
         };
+        
         if (!param?.tempVariableId){
             result = mainResult;
         };
@@ -219,14 +261,15 @@ const count = async (calculatedBp,item) => {
             };
         }else if (param.type === "temp"){                      
             const tempStoreElem  = tempStore.find(elem => elem.variableId === param.id); // 1. find parameters 
-             if (tempStoreElem){
-            paramValue = tempStoreElem.value;
+            if (tempStoreElem){
+                paramValue = tempStoreElem.value;
             }; 
         }else  { 
             needCount = false;
        };      
 
        // console.log({paramValue, paramName: param.paramName});
+     
         if (needCount){   // 2. count current result     
             if (sign === "+"){
                 result = result + paramValue;
@@ -248,6 +291,7 @@ const count = async (calculatedBp,item) => {
         if (previousParam.type === "dot"){           
             result = paramValue; 
         };
+
         if (currentTempVariableId){ // put in storage value of currentTempVariable
             const tempStoreElem  = tempStore.find(elem => elem.variableId === currentTempVariableId); 
             if (tempStoreElem){
@@ -256,7 +300,8 @@ const count = async (calculatedBp,item) => {
                 tempStore.push({variableId: currentTempVariableId, value: result});  
             };                      
         }; 
-        // console.log(tempStore);          
+        // console.log(tempStore); 
+        // console.log("result: ",result);         
                    
         if (!param?.tempVariableId || step === formula.length){
             mainResult = result;
