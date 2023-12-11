@@ -102,14 +102,16 @@ const  multiplyAndDivide = (newCurrentFormula,tempFormula,itr,mainVariableName) 
     arraySigns.forEach(item => {
         const values = newCurrentFormula.map(param => param.paramName); 
         const index = values.indexOf(item.paramName);
-        console.log("multiplyAndDivide index: ",index);
+        // console.log("multiplyAndDivide index: ",index);
         if (index !== -1){
             const params = newCurrentFormula.slice(index-1,index+2);
             // console.log("multiplyAndDivide params: ",params);
             params.forEach(currentValue => {
                 // add new element of simple formula
+                let id = "";
+                currentValue.type === "temp" ? id = currentValue.id : id =  step;
                 tempFormula.push({
-                    id: step, 
+                    id, 
                     paramId: currentValue.paramId, 
                     paramName: currentValue.paramName,
                     type: currentValue.type,
@@ -136,18 +138,25 @@ const  multiplyAndDivide = (newCurrentFormula,tempFormula,itr,mainVariableName) 
 
 const createElementaryFormulas = (currentFormula,tempFormula,itr) => {   
     let step = 1; 
-    const arrayBrackets = currentFormula.filter(item => item.paramName === "(" || item.paramName === ")"); 
+    const arrayParams = currentFormula.map(item => item.paramName); 
+    // console.log("arrayParams: ",arrayParams);
     const arraySigns = currentFormula.filter(item => item.paramName === "+" || item.paramName === "-");
-    const openingBracket = arrayBrackets.lastIndexOf("(");
-    const closingBracket = arrayBrackets.indexOf(")");    
-    const difference = closingBracket - openingBracket;
+    const openingBracket = arrayParams.lastIndexOf("(");
+    // console.log("openingBracket: ",openingBracket);
+    const closingBracket = arrayParams.indexOf(")"); 
+    // console.log("closingBracket: ",closingBracket);   
+    // const difference = closingBracket - openingBracket;
     const leftSide = currentFormula.slice(0,openingBracket);
-    const rightSide = currentFormula.slice(closingBracket);
+    const rightSide = currentFormula.slice(closingBracket+1);
+    // console.log("leftSide: ",leftSide);
+    // console.log("rightSide: ",rightSide);
+    // console.log("difference: ",difference);
     let newData = {};
     let newCurrentFormula = [...currentFormula]; 
     if (openingBracket !== -1){
-        newCurrentFormula.splice(openingBracket,difference);
+        newCurrentFormula = newCurrentFormula.slice(openingBracket+1,closingBracket);
     };  
+    // console.log("newCurrentFormula: ",newCurrentFormula);
     const variableId = 1; 
     const variableSymbol = "v";  
     const variableName = variableSymbol.concat(itr,".",variableId);   
@@ -174,68 +183,58 @@ const createElementaryFormulas = (currentFormula,tempFormula,itr) => {
         paramId:"", 
         paramName: variableName,
         type: "temp",
-        tempVariableId: "", 
+        tempVariableId: variableName, 
     };  
     
     if (openingBracket !== -1){
-        newCurrentFormula = leftSide.concat(newVariable,rightSide);
+        currentFormula = leftSide.concat(newVariable,rightSide);
     }else{
-        newCurrentFormula = [];  
+        currentFormula = [];  
         if (arraySigns.length){
-            newCurrentFormula = [newVariable]; 
+            currentFormula = [newVariable]; 
         }; 
     };
-
-    return {newCurrentFormula,tempFormula};
+    // console.log("currentFormula: ",currentFormula);
+    // console.log("tempFormula: ",tempFormula);
+    return {newCurrentFormula: currentFormula,tempFormula};
 };
 
 const transformFormula = (formula) => { 
     const brackets = formula.filter(item => item.paramName === "(");
-    let bracketsLength = brackets.length;
-    if (!bracketsLength){
-        bracketsLength = 1;
-    };  
+    const bracketsLength = brackets.length + 1;
+    // if (!bracketsLength){
+    //     bracketsLength = 1;
+    // };  
     const tempFormula = [];    
     let newData = {newCurrentFormula: [...formula],tempFormula};   
     for (let i = 1; i <= bracketsLength; i += 1){         
         newData = createElementaryFormulas(newData.newCurrentFormula,tempFormula,i);
     };
     const newCurrentFormula = [...newData.tempFormula,...newData.newCurrentFormula];
-    console.log("newCurrentFormula: ",newCurrentFormula);
+    // console.log("!!!newCurrentFormula: ",newCurrentFormula);
 
     return newCurrentFormula;
 };
 
 const count = async (calculatedBp,item) => {
-    let result = 0;
-    let mainResult = 0;   
+    let result = 0;    
     let sign = "";
     let paramValue = 0;
     let step = 1;   
-    let mainParam = {value: 0, type: ""};
+    let mainParam = {value: 0, type: "", paramId: ""};
     let needCount = true; 
     let previousParam = {};    
     let currentTempVariableId = ""; 
     const tempStore = [];  // example [{variableId: "",value: 0}]
     const formula = transformFormula( item.formula);
     for (const param of formula) { 
-        // console.log(param);
-        
+               
         if (currentTempVariableId !== param?.tempVariableId){            
-            if (param?.id === currentTempVariableId){  
-                // console.log("result!!!!! ",{result,tempVariableId: param?.tempVariableId});             
-                tempStore.push({variableId: param?.tempVariableId, value: result});                        
-            };
-            if (currentTempVariableId){               
-                result = 0;        
-            };
+            result = 0; //  
+            step = 1;      
             currentTempVariableId =param?.tempVariableId; // update currentTempVariableId
-        };
-        
-        if (!param?.tempVariableId){
-            result = mainResult;
-        };
-        
+        };        
+      
         needCount = true; 
         let next = {type: ""};
         if (param.type === "number"){
@@ -244,9 +243,17 @@ const count = async (calculatedBp,item) => {
             }catch{
                 throw HttpError(500,`Unable to count in process ${calculatedBp._id}`);   
             };                 
-        }else if (param.type === "parameter"){                    
+        }else if (param.type === "parameter"){  
+            
+                            
             if (mainParam.type){ // 1. find parameters 
-                paramValue = await findParamAsync(calculatedBp, param, mainParam);               
+                if (mainParam.value){ // 1. find parameters 
+                    console.log("mainParam: ",mainParam); 
+                    paramValue = await findParamAsync(calculatedBp, param, mainParam);
+                }else{
+                    paramValue =  "";
+                    mainParam = {value: 0, type: "", paramId: ""};
+                };               
             }else{
                 paramValue = findParamCommon(calculatedBp, param);                
             };
@@ -256,7 +263,7 @@ const count = async (calculatedBp,item) => {
                     needCount = false; 
                     mainParam = {value: paramValue, type: param.type, paramId:  param. paramId};
                 }else{                
-                    mainParam = {value: 0, type: ""}; 
+                    mainParam = {value: 0, type: "", paramId: ""};                     
                 };
             };
         }else if (param.type === "temp"){                      
@@ -272,13 +279,16 @@ const count = async (calculatedBp,item) => {
      
         if (needCount){   // 2. count current result     
             if (sign === "+"){
-                result = result + paramValue;
+                result = Number(result) + paramValue;
             }else if (sign === "-"){
-                result = result - paramValue;
+                result = Number(result) - paramValue;
             }else if (sign === "*"){        
-                result =  result * paramValue;                
+                result =  Number(result) * paramValue;                
             }else if (sign === "/"){
-                result = result / paramValue;
+                result = Number(result) / paramValue;
+            };
+            if (sign){
+                sign = "";
             };
             if (step === 1){
                 result = paramValue; 
@@ -292,20 +302,16 @@ const count = async (calculatedBp,item) => {
             result = paramValue; 
         };
 
-        if (currentTempVariableId){ // put in storage value of currentTempVariable
-            const tempStoreElem  = tempStore.find(elem => elem.variableId === currentTempVariableId); 
-            if (tempStoreElem){
-                tempStoreElem.value = result;
-            }else{
-                tempStore.push({variableId: currentTempVariableId, value: result});  
-            };                      
-        }; 
+        const tempStoreElem  = tempStore.find(elem => elem.variableId === currentTempVariableId); 
+        if (tempStoreElem){
+            tempStoreElem.value = result;
+        }else{
+            tempStore.push({variableId: currentTempVariableId, value: result});  
+        };                      
         // console.log(tempStore); 
         // console.log("result: ",result);         
                    
-        if (!param?.tempVariableId || step === formula.length){
-            mainResult = result;
-        };        
+      
         // utils for count
         if (param.type === "sign"){
             sign = param.paramName;    
@@ -314,7 +320,7 @@ const count = async (calculatedBp,item) => {
         step = step + 1;        
     };                     
   
-    return mainResult;  
+    return result;  
 }; 
 
 const updateParamValue = (calculatedBp,countResult,currentParam) => {
