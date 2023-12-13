@@ -10,6 +10,8 @@ const bpRouter = require('./routes/api/business-processes');
 const bpCatalogRouter = require('./routes/api/business-process-catalog');
 const subjectsRouter = require('./routes/api/subjects');
 const subjectsRouterSelect = require('./routes/api/subjects-select');
+const storesRouter = require('./routes/api/stores');
+const financeRouter = require('./routes/api/finances');
 
 
 const app = express();
@@ -26,6 +28,8 @@ app.use('/api/business-processes', bpRouter);
 app.use('/api/business-processes-catalog', bpCatalogRouter);
 app.use('/api/subjects', subjectsRouter);
 app.use('/api/subjects-select', subjectsRouterSelect);
+app.use('/api/stores', storesRouter);
+app.use('/api/finances', financeRouter);
 
 
 app.use((req, res) => {

@@ -201,10 +201,7 @@ const createElementaryFormulas = (currentFormula,tempFormula,itr) => {
 
 const transformFormula = (formula) => { 
     const brackets = formula.filter(item => item.paramName === "(");
-    const bracketsLength = brackets.length + 1;
-    // if (!bracketsLength){
-    //     bracketsLength = 1;
-    // };  
+    const bracketsLength = brackets.length + 1;  
     const tempFormula = [];    
     let newData = {newCurrentFormula: [...formula],tempFormula};   
     for (let i = 1; i <= bracketsLength; i += 1){         
@@ -248,7 +245,7 @@ const count = async (calculatedBp,item) => {
                             
             if (mainParam.type){ // 1. find parameters 
                 if (mainParam.value){ // 1. find parameters 
-                    console.log("mainParam: ",mainParam); 
+                    // console.log("mainParam: ",mainParam); 
                     paramValue = await findParamAsync(calculatedBp, param, mainParam);
                 }else{
                     paramValue =  "";
