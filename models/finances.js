@@ -1,37 +1,54 @@
 const {Schema, model} = require('mongoose');
 const Joi = require('joi');
 const {handleMongooseError} = require('../helpers');
-
+// sum: operation?.sum, sumUAH: operation?.sumUAH, sumBuck: operation?.sumBuck,
 const schema = new Schema({        
-    organization: {
+    count: {
       type: String,
       required: true,
     },
-    store: {
+    operations: {
       type: Array,
       required: true,
     },
+    currency: {
+      type: String,
+      required: true,
+    }, 
+    sum: {
+      type: Number,
+      default: 0,
+    }, 
+    sumUAH: {
+      type: Number,
+      default: 0,
+    },   
+    sumInter: {
+      type: Number,
+      default: 0,
+    },                        
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'user',
-  }     
+    }     
 },{versionKey: false});
 
 
 schema.post("save",handleMongooseError);
 
-const Stores = model('store',schema);
+const getModel =   (subject) => { 
+  const Finances = model(subject,schema);
 
-const addSchema = Joi.object({
-    name: Joi.string(),
-    path: Joi.string().required(),
-    frontId: Joi.string().required(),
-    source: Joi.string().required(),
-    custom: Joi.boolean(),
-    financial: Joi.boolean(),
-    master: Joi.string(),
-    elemSource: Joi.string(),
-    parentId: Joi.string(),
+  return Finances;
+}
+
+const addSchema = Joi.object({  
+    count: Joi.string().required(),
+    operations: Joi.array().required(), 
+    currency: Joi.string().required(),
+    sum: Joi.number(),
+    sumUAH: Joi.number(),
+    sumInter: Joi.number(),
 });
 
 
@@ -40,6 +57,6 @@ const schemas = {
 }
 
 module.exports = {
-    Stores,
+    getModel,
     schemas
 };

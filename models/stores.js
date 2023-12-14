@@ -20,11 +20,8 @@ const schema = new Schema({
 
 schema.post("save",handleMongooseError);
 
-const getModel =   (subject) => { 
-    const Finances = model(subject,schema);
-  
-    return Finances;
-  }
+const Stores = model('store',schema);
+
 
 const addSchema = Joi.object({
     organization: Joi.string().required(),
@@ -37,6 +34,6 @@ const schemas = {
 }
 
 module.exports = {
-    getModel,
+   Stores,
     schemas
 };

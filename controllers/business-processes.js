@@ -1,4 +1,5 @@
 const {BusinessProcess} = require('../models/business-process');
+const {getModel} = require('../models/finances');
 const {getSubjectModel} = require('../models/subjects-select');
 const {HttpError} = require('../helpers');
 const {ctrlWrapper} = require('../utils');
@@ -320,6 +321,12 @@ const count = async (calculatedBp,item) => {
     return result;  
 }; 
 
+const checkBelongsToFinance = (processId,variableId) => {
+    const check = true;
+
+    return check;
+}
+
 const updateParamValue = (calculatedBp,countResult,currentParam) => {
     // console.log("updateParamValue calculatedBp ",calculatedBp); 
     const previousValue = calculatedBp.cardHeaderParams.find(item => item._id === currentParam.variableId);   
@@ -330,23 +337,72 @@ const updateParamValue = (calculatedBp,countResult,currentParam) => {
             previousValue.value = {...newValue}; 
         // };          
     };
-
+   
     return calculatedBp;
 };
 
-const calculation =  async (calculatedBp) => {
+const updateCount = (currentCount,finance) => {
+    // const updatedCount = {};
+
+    return currentCount;
+};
+
+const deactivateOperation = (currentCount,operationId) => {
+    const currentOperation = currentCount.operations.find(item => item._id === operationId); 
+    if (currentOperation){
+        currentOperation.active = false;
+    };   
+    
+    return currentCount;
+};
+
+const calculation =  async (calculatedBp, owner) => {
     const formulaSequence = calculatedBp.formula;
-    let countResult = 0;  
+    let countResult = 0;    
+    const finance = []; 
+    // finance.push(operation);
     for (const item of formulaSequence){          
-        countResult = await count(calculatedBp,item);  
-        // countResult = 14;               
+        countResult = await count(calculatedBp,item);                
         calculatedBp = updateParamValue(calculatedBp,countResult,item);
-    };           
+
+         // check whether the variable belongs to finance
+        const check = checkBelongsToFinance(calculatedBp.processId,item.variableId);
+        // add to temp array for update finance
+        if (check){
+            finance.push({_id: calculatedBp._id, variableId: item.variableId, countResult, processId: calculatedBp.processId, active: true});
+        };
+    };       
+    // console.log("finance: ",finance);
+    const currency = "UAH"; 
+    const operation = {currency: "UAH", sum: 14, sumUAH: 10, sumInter: 2.5,};
+    if (finance.length > 0){      
+        // 64da0dbb497a9d5389d0ea2a - test case
+        const organization = 'Test'.concat('64da0dbb497a9d5389d0ea2a'); // ??? where do I need to get it  
+        const count = "25";          
+        const Finances = getModel(organization);  
+        // console.log("Finances: ",Finances);
+        let currentCount = await Finances.findOne({count, currency}); 
+        if (currentCount){
+            // turn off property of active data
+            console.log("currentCount: ",currentCount);
+            currentCount = deactivateOperation(currentCount,calculatedBp._id);  
+            //  !!! I need to do updateCount function
+            const updatedCount = updateCount(currentCount,finance);
+            await Finances.findByIdAndUpdate(currentCount._id,updatedCount, {new: true}); 
+        }else{
+            const newCount = {count, operations: [...finance], currency: operation?.currency, sum: operation?.sum, sumUAH: operation?.sumUAH, sumInter: operation?.sumInter, };
+            await Finances.create({...newCount, owner});
+        };
+       
+       
+    };
+  
     return calculatedBp;  
 };  
 
 const calculationBp =   async (req, res, next) => {   
     const {id} = req.params;
+    const {_id: owner} = req.user;  
     // const { processId } = req.body;
     // console.log(req.body);
      
@@ -356,7 +412,7 @@ const calculationBp =   async (req, res, next) => {
     };
           
 
-    const calculatedBp = await calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula]});
+    const calculatedBp = await calculation({_id: id, cardHeaderParams: [...result.cardHeaderParams], formula: [...result.formula], processId: result.processId},owner);
     const updatedElem = { id, cardHeaderParams: [...calculatedBp.cardHeaderParams] };
   
     result = await BusinessProcess.findByIdAndUpdate(id,updatedElem, {new: true});       
