@@ -1,6 +1,7 @@
 const { HttpError } = require('../helpers');
 const {User} = require('../models/user');
-const {ctrlWrapper} = require('../utils');
+const {ctrlWrapper, defaultOrganizationSettings} = require('../utils');
+// const {ctrlWrapper} = require('../utils');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const {SECRET_KEY} = process.env;
@@ -13,11 +14,15 @@ const register =   async (req, res, next) => {
     }
     const hashRassword = await bcrypt.hash(password,10);
     const newUser = await User.create({...req.body, password: hashRassword});
-
+   
     res.status(201).json({email: newUser.email,  subscription: "starter"});
+
+    await defaultOrganizationSettings(newUser);
 }
 
 const login =   async (req, res, next) => {
+    console.log("req.body: ",req.body);
+
     const {email, password} = req.body;
     const user = await User.findOne({email});
     if (!user){
@@ -28,8 +33,10 @@ const login =   async (req, res, next) => {
     if (!passwordCompare){
         throw HttpError(401,"Email or password is wrong");
     }  
-
-    const payload = {id: user._id};    
+   
+    const payload = {id: user._id}; 
+    // console.log("user._id: ",user._id);
+   
     const token = jwt.sign(payload, SECRET_KEY, {expiresIn: '23h'});
     await User.findByIdAndUpdate(user._id,{token});
 

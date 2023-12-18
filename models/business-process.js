@@ -26,6 +26,10 @@ const businessProcessSchema = new Schema({
       type: String,
       default: "",
     },
+    organiztion: {
+      type: String,
+      required: true,
+    },
     source: {
       type: String,
       required: true,
@@ -62,6 +66,7 @@ const addSchema = Joi.object({
   source: Joi.string().required(),
   frontId: Joi.string().required(),
   processId: Joi.string().required(),
+  organiztion: Joi.string().required(),
   parentId: Joi.string(),  
   status: Joi.string(),  
 });
