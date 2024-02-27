@@ -29,4 +29,6 @@ router.patch('/tableparams/:subject', authenticate, validateBodyCatalog(schemas.
 
 router.patch('/formula/:subject', authenticate, validateBodyCatalog(schemas.updateFormula), ctrl.updateSubjectParams);
 
+router.post('/upload/:subject', authenticate, ctrl.upload);
+
 module.exports = router

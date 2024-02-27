@@ -47,7 +47,7 @@ const subjectsSchema = new Schema({
 
 subjectsSchema.post("save",handleMongooseError);
 
-const Subjects = model('subjects',subjectsSchema);
+const Subjects = model('subjectss',subjectsSchema);
 
 const addSchema = Joi.object({
     name: Joi.string(),

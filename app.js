@@ -12,6 +12,7 @@ const subjectsRouter = require('./routes/api/subjects');
 const subjectsRouterSelect = require('./routes/api/subjects-select');
 const storesRouter = require('./routes/api/stores');
 const financeRouter = require('./routes/api/finances');
+const settingsRouter = require('./routes/api/settings');
 
 
 const app = express();
@@ -30,6 +31,7 @@ app.use('/api/subjects', subjectsRouter);
 app.use('/api/subjects-select', subjectsRouterSelect);
 app.use('/api/stores', storesRouter);
 app.use('/api/finances', financeRouter);
+app.use('/api/settings', settingsRouter);
 
 
 app.use((req, res) => {

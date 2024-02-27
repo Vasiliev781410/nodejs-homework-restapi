@@ -22,7 +22,7 @@ const listSubjects =   async (req, res, next) => {
    
     const {subjectName} = getReqParams(req);
     const Subjects = getSubjectModel(subjectName);
-    // console.log('Subjects ',Subjects); 
+    console.log('Subjects ',Subjects); 
 
     const result = await Subjects.find({owner},"-owner").populate("owner", "email subscription");
     result.sort((a, b) => a.path > b.path ? 1 : -1);
@@ -81,10 +81,51 @@ const updateSubjectParams =   async (req, res, next) => {
     res.json(result);
 }
 
+const upload =   async (req, res, next) => {
+    const {_id: owner} = req.user; 
+    const {data, organization} = req.body;
+    const firstElement = data.shift();
+    const {subjectName} = getReqParams(req);
+    const Subjects = getSubjectModel(subjectName);
+    console.log("subjectName: ",subjectName);
+    // const Subjects = getModel("subject") || mongoose.models.subject;
+    // const Subjects = mongoose.models.subject;
+    // const Subjects = getModel("banki");
+
+    // let Subjects = "";
+    // console.log("mongoose.models ",mongoose.models);  
+    console.log(firstElement);   
+    for (const item of data){
+        if (item.length > 0){
+            if (item[3]){
+                console.log("!!! item[3]: ",item[3]); 
+                // const Subjects = mongoose.models[item[3]] || getModel(item[3]);
+                const frontIdNewElem = item[1]; 
+
+                const newElem = {name: item[0], path: "".concat("/",frontIdNewElem), frontId: frontIdNewElem, source: item[3], parentId: item[2],organization};
+                const elem = await Subjects.findOne({frontId: frontIdNewElem, source: item[3]}, owner);
+                console.log("item[3]: ",item[3]);                
+                
+                let result = null;
+                if (!elem){                    
+                    result = await Subjects.create({...newElem, owner});
+                    console.log("result: ",result);
+                    res.status(201).json(result);
+                }else{
+                    console.log("elem: ",elem);
+                    res.status(201);
+                };                    
+          
+            };
+        };
+    };
+}
+
 module.exports = {
     listSubjects: ctrlWrapper(listSubjects),
     addSubject: ctrlWrapper(addSubject),
     removeSubject: ctrlWrapper(removeSubject),
     updateSubject: ctrlWrapper(updateSubject),
     updateSubjectParams: ctrlWrapper(updateSubjectParams),
+    upload: ctrlWrapper(upload),
 };
