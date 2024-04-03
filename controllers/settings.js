@@ -1,50 +1,42 @@
-const {getModel} = require('../models/settings');
+const {Counters} = require('../models/settings');
 const {ctrlWrapper} = require('../utils');
-// const mongoose = require('mongoose');
-
+const {HttpError} = require('../helpers');
 
 const add =   async (req, res, next) => {
+    const {_id: owner} = req.user;    
+    const result = await Counters.create({...req.body, owner});
+        
+    res.status(201).json(result);
+}
+
+const getByName =   async (req, res, next) => {
     const {_id: owner} = req.user; 
-    const {data, organization} = req.body;
-    const firstElement = data.shift();
-    const Subjects = getModel("subject");
-    // const Subjects = getModel("subject") || mongoose.models.subject;
-    // const Subjects = mongoose.models.subject;
-    // const Subjects = getModel("banki");
+    const {id} = req.params;  
+    const result = await Counters.findOne({sequence_name: id,owner});
+    if (!result){ 
+        throw HttpError(404,`Counter with name ${id} not found`);      
+    }    
+    res.json(result);  
+}
 
-    // let Subjects = "";
-    // console.log("mongoose.models ",mongoose.models);  
-    console.log(firstElement);   
-    for (const item of data){
-        if (item.length > 0){
-            if (item[3]){
-                console.log("!!! item[3]: ",item[3]); 
-                // const Subjects = mongoose.models[item[3]] || getModel(item[3]);
-                const frontIdNewElem = item[1]; 
-
-                const newElem = {name: item[0], path: "".concat("/",frontIdNewElem), frontId: frontIdNewElem, source: item[3], parentId: item[2],organization};
-                const elem = await Subjects.findOne({frontId: frontIdNewElem, source: item[3]}, owner);
-                console.log("item[3]: ",item[3]);                
-                console.log("elem: ",elem);
-
-                let result = null;
-                if (!elem){ 
-
-                    result = await Subjects.create({...newElem, owner});
-                    console.log("result: ",result);
-                    res.status(201).json(result);
-                }else{
-                    res.status(201);
-                };                    
-          
-            };
-        };
+const update =   async (req, res, next) => {   
+    const {id} = req.params;
+    const {_id: owner} = req.user; 
+    console.log(req.body);
+  
+   
+    const result = await Counters.findOneAndUpdate({sequence_name: id,owner},req.body, {new: true});
+    if (!result){ 
+      throw HttpError(404,`Counter with name ${id} not found`);      
     };
-    // res.status(201);
+
+    res.json(result);
 }
 
 
 
 module.exports = { 
     add: ctrlWrapper(add),
+    getByName: ctrlWrapper(getByName),
+    update: ctrlWrapper(update),
 };

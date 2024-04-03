@@ -1,6 +1,7 @@
 const {getSubjectModel} = require('../models/subjects-select');
 const {HttpError} = require('../helpers');
 const {ctrlWrapper} = require('../utils');
+const { v4: uuidv4 } = require('uuid');
 
 const getReqParams =   (req) => {
     const{subject} = req.params;
@@ -98,50 +99,93 @@ const convertIntoArray = async (formulaStr,owner) => {
     let previousType = "";
     let previousValue = "";
     let value = "";
+    let id = ""; 
     for (let i = 0; i < formulaStr.length; i++) {
         if (i === formulaStr.length-1){
             simbol = formulaStr.slice(i);
         }else{        
             simbol = formulaStr.slice(i,i+1);
         }; 
-        // check if simbol signs
+        // check if simbol signs         
         let elem = signs.find(item => item === simbol);
         if (elem){
-            type = "sign";
-            value = simbol;
-            params.push({id: "",paramId: "",paramName: value, type});
-            simbol = "";            
+            type = "sign";                     
         };
         if (!elem){
             elem = numbers.find(item => item === simbol);
+            if (elem){
+                type = "number";
+            };            
+        }; 
+        if (!elem){ 
+            type = "parameter";          
+        }; 
+
+        value = "";         
+
+        // console.log("formula simbol ",simbol);     
+        if (previousType === "number" & type !== "number"){
+            id = uuidv4(); 
+            params.push({id, paramId: "",paramName: previousValue, type: previousType}); 
+        };
+        if (previousType === "parameter" & type !== "parameter"){
+            id = uuidv4(); 
+            let paramName = previousValue;
+            const param =  await findParam(previousValue,owner);            
+            let paramId = "";
+            if (param){
+                paramId = param._id.toString();
+                paramName = param.name;
+            }
+            params.push({id, paramId,paramName, type: previousType}); 
+        }; 
+        if (i === formulaStr.length-1){
+            if (previousType !== type){
+               value = simbol;  
+            }else{
+               value = previousValue.concat(simbol);
+            };
+            if (type === "number"){
+                id = uuidv4(); 
+                params.push({id, paramId: "",paramName: value, type});
+                
+                return params; 
+            }else if (type === "parameter"){
+                id = uuidv4(); 
+                let paramName = value;
+                const param =  await findParam(paramName,owner);            
+                let paramId = "";                
+                if (param){
+                    paramId = param._id.toString();
+                    paramName = param.name;
+                }
+                params.push({id, paramId, paramName, type}); 
+
+                return params;     
+            }; 
+        };    
+          
+        if (type === "sign"){      
+            value = simbol;
+            id = uuidv4(); 
+            params.push({id, paramId: "",paramName: value, type});                   
+        };
+        if ( type === "number"){         
             if (previousType === "number"){
                 value = previousValue.concat(simbol);
             }else{
                 value = simbol;  
-            };
-            type = "number";            
-        }; 
-        if (previousType === "number" & type !== "number" || i === formulaStr.length-1){
-            params.push({id: "",paramId: "",paramName: value, type}); 
-        };
+            };                      
+        };        
         // if not number and not sign
-        if (!elem){ 
+        if (type === "parameter"){ 
             if (previousType === "parameter"){
                 value = previousValue.concat(simbol);
             }else{
                 value = simbol;  
-            };          
-            type = "parameter"; 
-            if (previousType === "parameter" & type !== "parameter" || i === formulaStr.length-1){
-                const param =  await findParam(value,owner);            
-                let id = "";
-                if (param){
-                    id = param._id.toString();
-                }
-                params.push({id: "",paramId: id,paramName: value, type}); 
-            };           
+            };                
         }; 
-        
+       
         previousType = type;
         previousValue = value;
       }
@@ -161,7 +205,8 @@ const convertFormula = async (formulaStr,owner) => {
                     formulaData.variableId = param._id.toString();
                 };
             }else{
-                formulaData.params = convertIntoArray(paramStr,owner);                
+                formulaData.params = await convertIntoArray(paramStr,owner); 
+                // console.log("formula param ",paramStr);            
             };
             counter += 1; 
         };  
@@ -184,7 +229,7 @@ const formulas =   async (str,source,owner) => {
     return formulaSequence;
 };
 
-const splitParams =   async (str) => {   
+const splitParams =   (str) => {   
     const frontIds = str.split(", ");
     const frontIds1 = str.split(",");
     if (frontIds1.length > frontIds.length){
@@ -204,7 +249,7 @@ const convertParamsToArray =   async (str,owner) => {
             paramId = result._id.toString();
         // type 
             let typeParam = ""; 
-            const param = result.params.find(item => item.frontId === "type");
+            const param = result.params.find(item => item.name === "type");
             if (param){
                 typeParam = param.value.type;
             }                                             
@@ -227,6 +272,7 @@ const upload =   async (req, res, next) => {
     const resArray = [];
     let sequence = []; 
     let currentOwnerBP = "";
+    let currentFrontId = "";
     for (const item of data){
         if (item.length > 0){
             if (item[3]){
@@ -235,8 +281,9 @@ const upload =   async (req, res, next) => {
                         currentOwnerBP = item[4];
                     };
                     let processId = ""; 
+                    currentFrontId = item[1].trim();
                     const Process = getSubjectModel("process");
-                    const result = await Process.findOne({frontId: item[1], owner});
+                    const result = await Process.findOne({frontId: currentFrontId, owner});
                     if (result){
                         processId = result._id.toString();
                         // console.log("!!!!!! process: ",result); 
@@ -254,10 +301,10 @@ const upload =   async (req, res, next) => {
                 }else{                   
                     // console.log("!!! item[3]: ",item[3]); 
                     const Subjects = getSubjectModel(item[3]);
-                    const frontIdNewElem = item[1]; 
+                    currentFrontId = item[1].trim(); 
 
-                    const newElem = {name: item[0], path: "/".concat(frontIdNewElem), frontId: frontIdNewElem, source: item[3], parentId: item[2],organization};
-                    const elem = await Subjects.findOne({frontId: frontIdNewElem, source: item[3], owner});
+                    const newElem = {name: item[0], path: "/".concat(currentFrontId), frontId: currentFrontId, source: item[3], parentId: item[2],organization};
+                    const elem = await Subjects.findOne({frontId: currentFrontId, source: item[3], owner});
                     // console.log("item[3]: ",item[3]);                
                     
                     let result = null;
@@ -324,7 +371,9 @@ const upload =   async (req, res, next) => {
                 };
                 if (item[9]){                     
                     const formula = await formulas(item[9],item[3],owner);
-                    console.log(formula);
+                    // console.log(formula);
+                    const Subjects = getSubjectModel(item[3]);
+                    await Subjects.findOneAndUpdate({frontId: item[1], owner}, {formula, source: item[3]},{new: true});     
                 };
             };
         };

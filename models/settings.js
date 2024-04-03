@@ -3,82 +3,27 @@ const Joi = require('joi');
 const {handleMongooseError} = require('../helpers');
 
 const schema = new Schema({        
-    name: {
+    sequence_name: {
         type: String,
       },
-      nameChanged: {
-        type: Boolean,
-        default: false,
-      },
-      path: {
-        type: String,
-        required: true,
-      },
-      frontId: {
-        type: String,
-        required: true,
-      },
-      source: {
-        type: String,
-        required: true,
-      },
-      elemSource: {
-       type: String,
-       default: '',
-      },
-      elemSourceId: {
-        type: String,
-        default: '',
-      },
-      masterId: {
-        type: String,
-        default: '',
-      },
-      parentId: {
-        type: String,
-        default: null,
-      },
-      params: {
-        type: Array,
-        default: [],
-      },
-      sequence:{
-        type: Array,
-        default: [],
-      },
-      cardHeaderParams:{
-        type: Array,
-        default: [],
-      },
-      cardTableParams:{
-        type: Array,
-        default: [],
-      },
-      formula:{
-        type: Array,
-        default: [],
+      sequence_value: {
+        type: Number,
+        default: 0,
       },
       owner: {
         type: Schema.Types.ObjectId,
         ref: 'user',
-    }     
+    }          
 },{versionKey: false});
 
 
 schema.post("save",handleMongooseError);
 
-const getModel =   (subject) => { 
-    const Subjects = model(subject,schema);
-  
-    return Subjects;
-}
-
-
+const Counters = model('counter',schema);
 
 const addSchema = Joi.object({
-    organization: Joi.string().required(),
-    data: Joi.array().required(),
-});
+    sequence_name: Joi.string().required(),
+ });
 
 
 const schemas = {
@@ -86,6 +31,6 @@ const schemas = {
 }
 
 module.exports = {
-    getModel,
+    Counters,
     schemas
 };
